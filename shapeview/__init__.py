@@ -46,21 +46,8 @@ def register():
   #timer.start()
   bpy_exports.register()
   
-  bpy.app.handlers.render_init.append(render_pre)
-  bpy.app.handlers.render_pre.append(render_pre)
-  bpy.app.handlers.render_post.append(render_post)
-  bpy.app.handlers.render_cancel.append(render_post)
-  bpy.app.handlers.render_complete.append(render_post)
-  
 def unregister():
   from . import timer
   #timer.stop()
   
-  if bpy_exports.registered:
-    bpy.app.handlers.render_init.remove(render_pre)
-    bpy.app.handlers.render_pre.remove(render_pre)
-    bpy.app.handlers.render_post.remove(render_post)
-    bpy.app.handlers.render_cancel.remove(render_post)
-    bpy.app.handlers.render_complete.remove(render_post)
-    
   bpy_exports.unregister()

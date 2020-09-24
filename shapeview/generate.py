@@ -117,7 +117,14 @@ svglob = bpy._shapeview_global
   buf2 = file.read()
 
   out += getStartEnd(buf2)
-  out += "\nregister()\n"
+  
+  out += """
+
+#register properties
+if not hasattr(bpy.types.Key, "shapeview"):
+  register()
+
+"""
   
   out += getStartEnd(buf)
   
