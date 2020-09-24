@@ -141,14 +141,12 @@ def _sv_getview(obname, key):
 # Add variable defined in this script into the drivers namespace.
 bpy.app.driver_namespace["_sv_getview"] = _sv_getview
 
-def setView(ob, both_sides=False):
+def setView(ob):
     shapeview = ob.data.shape_keys.shapeview
     key = ob.active_shape_key_index
     
     key = ob.data.shape_keys.key_blocks[key]
     sv = getKey(shapeview, key.name)
-    
-    sv.both_sides = both_sides
     
     view = getView()
     print("view", view)

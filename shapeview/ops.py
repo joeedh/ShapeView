@@ -32,8 +32,6 @@ class SetViewVectorOp(bpy.types.Operator):
     bl_idname = "object.shapeview_set_view"
     bl_label = "Set View"
     bl_options = {'UNDO'}
-
-    both_sides : bpy.props.BoolProperty()
     
     @classmethod
     def poll(cls, context):
@@ -41,7 +39,7 @@ class SetViewVectorOp(bpy.types.Operator):
 
     def execute(self, context):
         ob = context.object
-        setView(ob, self.both_sides)
+        setView(ob)
         
         return {'FINISHED'}
 
@@ -50,8 +48,6 @@ class CreateEmbeddedScript(bpy.types.Operator):
     bl_idname = "object.shapeview_create_script"
     bl_label = "Create Script"
     bl_options = {'UNDO'}
-
-    both_sides : bpy.props.BoolProperty()
     
     @classmethod
     def poll(cls, context):
@@ -59,7 +55,6 @@ class CreateEmbeddedScript(bpy.types.Operator):
 
     def execute(self, context):
         ob = context.object
-        setView(ob, self.both_sides)
         from . import generate
         
         buf = generate.generate()
