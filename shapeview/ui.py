@@ -26,12 +26,21 @@ class DATA_PT_ShapeView(ShapeKeyPanel):
       
       
       #print(dir(layout))
-      
+        
+      box = layout.box()
+      target = ob.data.shape_keys.shapeview.target
+      box.label(text="Front Axis Target")
+      box.prop(target, "object")
+      if target.object:
+        if type(target.object.data) == bpy.types.Armature:
+          box.prop_search(target, "bone", target.object.data, "bones")
+        
+        #box.prop(target, "axis")
+        
       layout.operator("object.shapeview_create_drivers")
       layout.operator("object.shapeview_create_script")
-      box = layout.box()
       
-      layout.operator("object.shapeview_set_view", text="Set View Vector")
+      box = layout.box()
       
       for sv in shapeview.skeys:
         if sv.shapekey == skey.name and not isBasisKey(sv.shapekey, mesh.shape_keys):          
@@ -39,6 +48,8 @@ class DATA_PT_ShapeView(ShapeKeyPanel):
           box.prop(sv, "vector", text=sv.shapekey)
           box.prop(sv, "both_sides")
 
+      layout.operator("object.shapeview_set_view", text="Set View Vector")
+      
       """
       layout.label(text="Shape Key: " + skey.name);
       layout.operator("object.shapeview_create_drivers")

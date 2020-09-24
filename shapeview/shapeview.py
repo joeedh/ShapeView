@@ -19,6 +19,31 @@ def getKey(shapeview, key):
     ret.shapekey = key
     return ret
 
+def getTargetMatrix(ob):
+  shapeview = ob.data.shape_keys.shapeview
+  target = shapeview.target
+  
+  mat = ob.matrix_world
+  
+  if target.object is not None:
+    ob2 = target.object
+    mat = ob2.matrix_world
+    bone = None
+    
+    if type(ob2.data) == bpy.types.Armature:
+      bone = target.bone
+      if bone in ob2.pose.bones:
+        bone = ob2.pose.bones[bone]
+      else:
+        bone = None
+    
+    if bone:
+      mat = mat @ bone.matrix
+  
+  loc, quat, scale = mat.decompose()
+  
+  return quat.to_matrix()
+  
 def getView():
     view3d = None
     global last_view
@@ -50,9 +75,8 @@ def getKeyVal(ob, key):
     
     getView()
 
-    mat1 = ob.matrix_world
+    mat1 = getTargetMatrix(ob)
     
-    #z1 = Vector(mat1[2][:3])
     z1 = mat1 @ Vector(sv.vector)
     z2 = last_view
     
@@ -68,6 +92,8 @@ def getKeyVal(ob, key):
     imat = Matrix(ob.matrix_world)
     imat.invert()
     
+    print("z1", z1)
+    print("z2", z2)
     print("th", th, imat @ z2)
     th /= pi*0.5
     
@@ -124,13 +150,20 @@ def setView(ob, both_sides=False):
     
     sv.both_sides = both_sides
     
-    print(shapeview, sv, sv.shapekey)
-    
     view = getView()
-    print(view)
+    print("view", view)
     
-    sv.vector = view
-    print(sv.vector)
+    mat = Matrix(getTargetMatrix(ob))
+    mat.invert()
+    
+    print(mat)
+    print((mat @ view))
+    
+    vec = mat @ view
+    vec.normalize()
+    
+    sv.vector = vec
+    print(vec)
 
 last_update_view = Vector()
 
@@ -176,7 +209,7 @@ def getDriver(ob, skeys, keyname, animdata, path):
   
   return ret
   
-def makeDriver(ob, keyname, skeys):
+def makeDriver(ob, keyname, skeys, target):
   key = skeys.key_blocks[keyname]
   
   if skeys.animation_data is None:
@@ -199,10 +232,21 @@ def makeDriver(ob, keyname, skeys):
   
   d.driver.expression = "_sv_getview(\""+ob.name+"\", \"" + keyname + "\")"
   
+  if target.object is not None:
+    var2 = d.driver.variables.new()
+    var2.name = "dgraph_link"
+    var2.targets[0].id = target.object
+    
+    var2.type = "TRANSFORMS"
+    
+    if type(target.object.data) == bpy.types.Armature:
+      var2.targets[0].bone_target = target.bone
+  
 def createDrivers(ob):
   mesh = ob.data
   shapeview = mesh.shape_keys.shapeview
   skeys = mesh.shape_keys
+  target = shapeview.target 
   
   for sv in shapeview.skeys:
     if isBasisKey(sv.shapekey, skeys):
@@ -211,7 +255,7 @@ def createDrivers(ob):
       print("Warning, missing key " + sv.shapekey)
       continue
       
-    makeDriver(ob, sv.shapekey, skeys)
+    makeDriver(ob, sv.shapekey, skeys, target)
     
     print(sv.shapekey)
 
