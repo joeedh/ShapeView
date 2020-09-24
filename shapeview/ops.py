@@ -64,6 +64,9 @@ class CreateEmbeddedScript(bpy.types.Operator):
           bpy.data.texts.new(name)
         
         text = bpy.data.texts[name];
+
+        ob.shapeview.script = text
+        
         text.clear()
         text.write(buf)
         text.use_module = True

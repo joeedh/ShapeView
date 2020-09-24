@@ -188,7 +188,7 @@ def setView(ob):
     print(vec)
 
 last_update_view = Vector()
-
+  
 def needUpdate():
     getView()
     
@@ -210,17 +210,31 @@ def needUpdate():
     
     return False
 
-def checkViews():
-    #print("need update?", needUpdate())
-    if needUpdate():
-        ob = bpy.data.objects[obname]
+def allVisibleObjects():
+  obset = set()
+  def check(obs):
+    for ob in obs:
+      if ob.mode not in ["OBJECT", "POSE"]:
+        continue
         
-        if ob.mode in ["OBJECT", "POSE"]:
-            print("view update detected")
-            dgraph = bpy.context.evaluated_depsgraph_get()
-            scene = bpy.context.scene
-            ob.data.shape_keys.update_tag()
-    pass
+      if ob.type == "EMPTY" and ob.instance_type == "COLLECTION" and ob.instance_collection:
+        coll = ob.instance_collection
+        check(coll.all_objects)
+      
+      if ob.type == "MESH" and ob.data.shape_keys and len(ob.data.shape_keys.shapeview.skeys) > 0:
+        obset.add(ob)
+  
+  check(bpy.context.visible_objects)  
+  return obset 
+  
+def checkViews():
+    #print("need upd ate?", needUpdate())
+    dgraph = bpy.context.evaluated_depsgraph_get()
+    scene = bpy.context.scene
+    
+    if needUpdate():
+      for ob in allVisibleObjects():
+        ob.data.shape_keys.update_tag()
 
 
 def isBasisKey(name, skeys):

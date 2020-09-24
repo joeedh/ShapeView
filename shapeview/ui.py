@@ -3,6 +3,26 @@ from bpy.props import *
 from . import utils
 from .shapeview import isBasisKey
 
+class DATA_PT_WorkSpaceShapeView (bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Tool"
+    bl_label = "Shape View"
+    
+    @classmethod
+    def poll(cls, context):
+      return True
+    
+    def draw(self, context):
+      layout = self.layout
+      
+      row = layout.row()
+      row.prop(context.workspace.shapeview, "active_view3d")
+
+      op = row.operator("screen.select_area")
+      op.targetPath = "workspaces[\"%s\"].shapeview" % (bpy.context.workspace.name)
+      op.targetProp = "active_view3d"
+      
 class ShapeKeyPanel (bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -32,8 +52,8 @@ class DATA_PT_ShapeView(ShapeKeyPanel):
       
       row = layout.row()
       row.prop(context.workspace.shapeview, "active_view3d")
+
       op = row.operator("screen.select_area")
-      
       op.targetPath = "workspaces[\"%s\"].shapeview" % (bpy.context.workspace.name)
       op.targetProp = "active_view3d"
       
@@ -72,6 +92,7 @@ class DATA_PT_ShapeView(ShapeKeyPanel):
 from .utils import Registrar
 
 bpy_exports = Registrar([
-  DATA_PT_ShapeView
+  DATA_PT_ShapeView,
+  DATA_PT_WorkSpaceShapeView
 ])
 
