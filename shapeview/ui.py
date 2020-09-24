@@ -29,6 +29,14 @@ class DATA_PT_ShapeView(ShapeKeyPanel):
         
       box = layout.box()
       target = ob.data.shape_keys.shapeview.target
+      
+      row = layout.row()
+      row.prop(context.workspace.shapeview, "active_view3d")
+      op = row.operator("screen.select_area")
+      
+      op.targetPath = "workspaces[\"%s\"].shapeview" % (bpy.context.workspace.name)
+      op.targetProp = "active_view3d"
+      
       box.label(text="Front Axis Target")
       box.prop(target, "object")
       if target.object:
@@ -36,7 +44,7 @@ class DATA_PT_ShapeView(ShapeKeyPanel):
           box.prop_search(target, "bone", target.object.data, "bones")
         
         #box.prop(target, "axis")
-        
+      
       layout.operator("object.shapeview_create_drivers")
       layout.operator("object.shapeview_create_script")
       

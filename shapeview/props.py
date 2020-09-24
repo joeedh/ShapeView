@@ -19,12 +19,19 @@ class ShapeViewTarget (bpy.types.PropertyGroup):
 class ShapeView (bpy.types.PropertyGroup):
     skeys  : bpy.props.CollectionProperty(type=ShapeViewKey)
     target : bpy.props.PointerProperty(type=ShapeViewTarget)
-    
+
+class WorkSpaceShapeView (bpy.types.PropertyGroup):
+    active_view3d : bpy.props.IntProperty(default=0)
+
 def register():
   bpy.utils.register_class(ShapeViewKey)
   bpy.utils.register_class(ShapeViewTarget)
   bpy.utils.register_class(ShapeView)
+  bpy.utils.register_class(WorkSpaceShapeView)
+  
   bpy.types.Key.shapeview = bpy.props.PointerProperty(type=ShapeView)    
+  bpy.types.WorkSpace.shapeview = bpy.props.PointerProperty(type=WorkSpaceShapeView)
+  
 #END
 
 def unregister():

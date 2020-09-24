@@ -9,6 +9,7 @@ from .Global import svglob
 #START
 
 last_view = Vector([0, 0, 1])
+did_render = False
 
 def getKey(shapeview, key):
     for sk in shapeview.skeys:
@@ -45,19 +46,45 @@ def getTargetMatrix(ob):
   return quat.to_matrix()
   
 def getView():
+    global last_view, did_render
+    
+    if svglob.is_rendering:
+      did_render = True
+      
+      print("IS RENDERING", svglob.is_rendering)
+      camera = bpy.context.scene.camera
+      if not camera:
+        print("ERROR: no camera?!!")
+      else:
+        mat2 = camera.matrix_world
+        mat2 = Matrix(mat2)
+        mat2.invert()
+        
+        last_view = Vector(mat2[2][:3])
+        return
+        
     view3d = None
-    global last_view
-
+    
+    first = None
+    i = 0
     if bpy.context.window and bpy.context.window.screen:
-        for area in bpy.context.window.screen.areas:
-            if area.type == "VIEW_3D":
-                view3d = area.spaces[0].region_3d
-                
-#        print("view3d:", view3d)
-        if view3d:
-#            print(view3d.view_matrix)
-            mat2 = view3d.view_matrix
-            last_view = Vector(mat2[2][:3])
+      for area in bpy.context.window.screen.areas:
+        if area.type == "VIEW_3D":
+          if not first:
+            first = area.spaces[0].region_3d
+          if i == bpy.context.workspace.shapeview.active_view3d:
+            view3d = area.spaces[0].region_3d
+            
+          i += 1
+      
+      if first and not view3d:
+        print("warning, failed to find correct view3d for index %i"%(bpy.context.workspace.shapeview.active_view3d));
+        view3d = first
+        
+      if view3d:
+        mat2 = view3d.view_matrix
+        last_view = Vector(mat2[2][:3])
+        
     return last_view
 
 def getKeyVal(ob, key):
@@ -92,9 +119,6 @@ def getKeyVal(ob, key):
     imat = Matrix(ob.matrix_world)
     imat.invert()
     
-    print("z1", z1)
-    print("z2", z2)
-    print("th", th, imat @ z2)
     th /= pi*0.5
     
     th = min(max(th, 0.0), 1.0)
@@ -168,9 +192,18 @@ last_update_view = Vector()
 def needUpdate():
     getView()
     
+    #timer might not be called during render, and thus it might think
+    #view hasn't changed
+    
+    global did_render
     global last_update_view
     global last_view
-
+    
+    if did_render:
+      did_render = False
+      last_update_view = last_view
+      return True
+      
     if (last_view - last_update_view).length > 0.001:
         last_update_view = last_view
         return True

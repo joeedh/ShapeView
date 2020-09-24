@@ -1,9 +1,11 @@
 import bpy
 
+#this module is no longer used
 class SVGlob:
     def __init__(self):
         self.timergen = 0
-
+        self.is_rendering = False
+        
     def startTimer(self, timerfunc):
         self.timergen += 1
         

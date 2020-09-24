@@ -37,12 +37,59 @@ import bmesh, random, time, os, sys, os.path
 class SVGlob:
     def __init__(self):
         self.timergen = 0
+        self.is_rendering = False
+        self.registered = False
+        self.file = bpy.data.filepath
 
+        self.register()
+        
+    def render_pre(self, a, b):
+      self.is_rendering = True
+    def render_post(self, a, b):
+      self.is_rendering = False
+      
+    def check_file(self):
+      if bpy.data.filepath != self.file:
+        print(".blend file change detected")
+        self.unregister()
+        return False
+        
+      return True
+      
+    def register(self):
+      if not self.check_file():
+        return
+        
+      self.registered = True
+      
+      bpy.app.handlers.render_init.append(self.render_pre)
+      bpy.app.handlers.render_pre.append(self.render_pre)
+      bpy.app.handlers.render_post.append(self.render_post)
+      bpy.app.handlers.render_cancel.append(self.render_post)
+      bpy.app.handlers.render_complete.append(self.render_post)
+    
+    def unregister(self):
+      if not self.registered:
+        return
+        
+      self.registered = True
+      try:
+        bpy.app.handlers.render_init.remove(self.render_pre)
+        bpy.app.handlers.render_pre.remove(self.render_pre)
+        bpy.app.handlers.render_post.remove(self.render_post)
+        bpy.app.handlers.render_cancel.remove(self.render_post)
+        bpy.app.handlers.render_complete.remove(self.render_post)
+      except:
+        print("error removing render handlers")
+        
     def startTimer(self, timerfunc):
         self.timergen += 1
         
         timergen = [self.timergen]
         def timer():
+            if not self.check_file():
+              return None
+              
             if self.timergen != timergen[0]:
                 print("Timer stop")
                 return None
@@ -54,7 +101,10 @@ class SVGlob:
     def stopTimers(self):
       self.timergen += 1
 
-if not hasattr(bpy, "_shapeview_global"):
+if not hasattr(bpy, "_shapeview_global") or not bpy._shapeview_global.check_file():
+  if hasattr(bpy, "_shapeview_global"):
+    bpy._shapeview_global.unregister()
+    
   bpy._shapeview_global = SVGlob()
 
 svglob = bpy._shapeview_global
