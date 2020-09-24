@@ -52,7 +52,6 @@ class DATA_PT_ShapeView(ShapeKeyPanel):
       
       for sv in shapeview.skeys:
         if sv.shapekey == skey.name and not isBasisKey(sv.shapekey, mesh.shape_keys):          
-          box.operator("object.shapeview_set_view", text="Set View Vector")
           box.prop(sv, "vector", text=sv.shapekey)
           box.prop(sv, "both_sides")
 
